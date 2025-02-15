@@ -4,3 +4,4 @@ venv/
 .env
 *.db
 *.csv
+*.xlsx

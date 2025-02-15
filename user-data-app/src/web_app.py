@@ -39,11 +39,22 @@ def ensure_csv_exists():
         df.to_csv(CSV_PATH, index=False)
 
 def generate_qr_code(url):
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(url)
-    qr.make(fit=True)
-    qr_image = qr.make_image(fill_color="black", back_color="white")
-    qr_image.save('static/qr_code.png')
+    """Generate QR code and save it to static directory"""
+    try:
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(url)
+        qr.make(fit=True)
+        qr_image = qr.make_image(fill_color="black", back_color="white")
+        
+        # Save QR code to static directory
+        qr_path = os.path.join(STATIC_DIR, 'qr_code.png')
+        qr_image.save(qr_path)
+        
+        print(f"QR code generated successfully at {qr_path}")
+        return True
+    except Exception as e:
+        print(f"Error generating QR code: {str(e)}")
+        return False
 
 @app.route('/')
 def index():
@@ -89,6 +100,14 @@ def submit():
 @app.route('/success')
 def success():
     return render_template('success.html')
+
+# Add this route to test QR code generation
+@app.route('/test-qr')
+def test_qr():
+    success = generate_qr_code('http://localhost:5000')
+    if success:
+        return '<img src="/static/qr_code.png">'
+    return 'Failed to generate QR code'
 
 if __name__ == '__main__':
     ensure_csv_exists()

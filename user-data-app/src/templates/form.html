@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Staff Data Collection</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px;
+        }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 8px; }
+        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; }
+    </style>
+</head>
+<body>
+    <h1>Staff Data Collection Form</h1>
+    <form action="/submit" method="post">
+        <div class="form-group">
+            <label for="full_name">Full Name:</label>
+            <input type="text" id="full_name" name="full_name" required>
+        </div>
+        <div class="form-group">
+            <label for="staff_number">Staff Number:</label>
+            <input type="text" id="staff_number" name="staff_number" required>
+        </div>
+        <div class="form-group">
+            <label for="staff_cadre">Staff Cadre:</label>
+            <input type="text" id="staff_cadre" name="staff_cadre" required>
+        </div>
+        <div class="form-group">
+            <label for="meal_type">Meal Type:</label>
+            <select id="meal_type" name="meal_type" required>
+                <option value="">Select a meal</option>
+                <option value="Breakfast">Breakfast</option>
+                <option value="10 AM Tea">10 AM Tea</option>
+                <option value="Lunch">Lunch</option>
+                <option value="4 PM Tea">4 PM Tea</option>
+                <option value="Dinner">Dinner</option>
+                <option value="Mid Night Dinner">Mid Night Dinner</option>
+            </select>
+        </div>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

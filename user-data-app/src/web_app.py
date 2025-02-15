@@ -2,17 +2,31 @@ from flask import Flask, render_template, request, redirect
 import pandas as pd
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 import qrcode
+
+load_dotenv()
+
+# Create necessary directories
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
+
+# Create directories if they don't exist
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(STATIC_DIR, exist_ok=True)
+os.makedirs(TEMPLATES_DIR, exist_ok=True)
 
 app = Flask(__name__)
 
-# Ensure the templates and static directories exist
-os.makedirs('templates', exist_ok=True)
-os.makedirs('static', exist_ok=True)
-
-CSV_PATH = "../data/users.csv"
+# Use absolute path for CSV file
+CSV_PATH = os.path.join(DATA_DIR, 'users.csv')
+HOST = os.getenv('HOST', '0.0.0.0')
+PORT = int(os.getenv('PORT', 5000))
 
 def ensure_csv_exists():
+    """Create CSV file if it doesn't exist"""
     if not os.path.exists(CSV_PATH):
         df = pd.DataFrame(columns=['Full Name', 'Staff Number', 'Staff Cadre', 'Meal Type', 'Date Added'])
         df.to_csv(CSV_PATH, index=False)
@@ -50,9 +64,15 @@ def success():
 
 if __name__ == '__main__':
     ensure_csv_exists()
-    # Generate QR code for the local server
-    generate_qr_code('http://localhost:5000')
-    app.run(host='0.0.0.0', debug=True)
+    # Generate QR code for local network URL
+    import socket
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    app_url = f'http://{local_ip}:{PORT}'
+    generate_qr_code(app_url)
+    print(f"Server running at: {app_url}")
+    print(f"QR Code generated for: {app_url}")
+    app.run(host=HOST, port=PORT, debug=False)
 
 # In the ensure_storage_exists method:
 cursor.execute('''

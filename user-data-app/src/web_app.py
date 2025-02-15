@@ -62,17 +62,17 @@ def index():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    full_name = request.form['full_name']
-    staff_number = request.form['staff_number']
+    full_name = request.form['full_name'].strip()  # Remove leading/trailing spaces
+    staff_number = request.form['staff_number'].strip().upper()  # Convert staff number to uppercase
     
-    # Assuming your Excel columns might be named differently
+    # Get column names from Excel file
     name_column = 'Name'  # Update this to match your Excel column name
     number_column = 'Staff Number'  # Update this to match your Excel column name
     
-    # Check if staff exists and details match
+    # Case-insensitive matching for both name and staff number
     staff_match = staff_df[
         (staff_df[name_column].str.lower() == full_name.lower()) & 
-        (staff_df[number_column] == staff_number)
+        (staff_df[number_column].str.upper() == staff_number)
     ]
     
     if staff_match.empty:
@@ -81,10 +81,11 @@ def submit():
                             full_name=full_name,
                             staff_number=staff_number)
     
-    # If match found, proceed with form submission
+    # If match found, proceed with form submission using original case from Excel
+    matched_staff = staff_match.iloc[0]
     data = {
-        'Full Name': full_name,
-        'Staff Number': staff_number,
+        'Full Name': matched_staff[name_column],  # Use name as stored in Excel
+        'Staff Number': matched_staff[number_column],  # Use staff number as stored in Excel
         'Staff Cadre': request.form['staff_cadre'],
         'Meal Type': request.form['meal_type'],
         'Date Added': datetime.now().strftime("%Y-%m-%d %H:%M:%S")

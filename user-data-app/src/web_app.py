@@ -105,7 +105,7 @@ def success():
 @app.route('/test-qr')
 def test_qr():
     success = generate_qr_code('http://localhost:5000')
-    if success:
+    if (success):
         return '<img src="/static/qr_code.png">'
     return 'Failed to generate QR code'
 

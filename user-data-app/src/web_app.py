@@ -8,22 +8,29 @@ import qrcode
 load_dotenv()
 
 # Create necessary directories
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(__file__)  # Changed to use src directory as base
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
-TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')  # Templates will be in src/templates
 
 # Create directories if they don't exist
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(STATIC_DIR, exist_ok=True)
-os.makedirs(TEMPLATES_DIR, exist_ok=True)
+# No need to create templates directory since it already exists
 
-app = Flask(__name__)
+app = Flask(__name__, 
+           template_folder=TEMPLATES_DIR,  # Explicitly tell Flask where to find templates
+           static_folder=STATIC_DIR)       # Explicitly tell Flask where to find static files
 
 # Use absolute path for CSV file
 CSV_PATH = os.path.join(DATA_DIR, 'users.csv')
 HOST = os.getenv('HOST', '0.0.0.0')
 PORT = int(os.getenv('PORT', 5000))
+
+# Add Excel file path and read staff data
+STAFF_EXCEL = os.path.join(DATA_DIR, 'document.xlsx')
+staff_df = pd.read_excel(STAFF_EXCEL)
+print("Excel columns:", staff_df.columns.tolist())  # Debug line to see column names
 
 def ensure_csv_exists():
     """Create CSV file if it doesn't exist"""
@@ -44,14 +51,35 @@ def index():
 
 @app.route('/submit', methods=['POST'])
 def submit():
+    full_name = request.form['full_name']
+    staff_number = request.form['staff_number']
+    
+    # Assuming your Excel columns might be named differently
+    name_column = 'Name'  # Update this to match your Excel column name
+    number_column = 'Staff Number'  # Update this to match your Excel column name
+    
+    # Check if staff exists and details match
+    staff_match = staff_df[
+        (staff_df[name_column].str.lower() == full_name.lower()) & 
+        (staff_df[number_column] == staff_number)
+    ]
+    
+    if staff_match.empty:
+        return render_template('form.html', 
+                            error="Invalid staff details. Please check your name and staff number.",
+                            full_name=full_name,
+                            staff_number=staff_number)
+    
+    # If match found, proceed with form submission
     data = {
-        'Full Name': request.form['full_name'],
-        'Staff Number': request.form['staff_number'],
+        'Full Name': full_name,
+        'Staff Number': staff_number,
         'Staff Cadre': request.form['staff_cadre'],
         'Meal Type': request.form['meal_type'],
         'Date Added': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
     
+    ensure_csv_exists()
     df = pd.read_csv(CSV_PATH)
     df = pd.concat([df, pd.DataFrame([data])], ignore_index=True)
     df.to_csv(CSV_PATH, index=False)
